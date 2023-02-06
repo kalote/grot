@@ -5,15 +5,15 @@ import 'package:grot/components/my_inputfield.dart';
 import 'package:grot/components/square_tile.dart';
 import 'package:grot/services/auth_service.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   final Function()? onTap;
-  const LoginPage({super.key, required this.onTap});
+  const RegisterPage({super.key, required this.onTap});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -22,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
 
     void showErrorMessage(String message) {
       showDialog(
@@ -39,7 +40,7 @@ class _LoginPageState extends State<LoginPage> {
           });
     }
 
-    void signUserIn() async {
+    void signUserUp() async {
       // show loading
       showDialog(
           context: context,
@@ -49,13 +50,18 @@ class _LoginPageState extends State<LoginPage> {
             );
           });
 
-      // log user
+      // create user
       try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text);
-        // remove loading
-        if (context.mounted) {
+        // check if password & confirm are the same
+        if (passwordController.text == confirmPasswordController.text) {
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text);
+          if (context.mounted) {
+            Navigator.pop(context);
+          }
+        } else {
           Navigator.pop(context);
+          showErrorMessage("Passwords don't match");
         }
       } on FirebaseAuthException catch (e) {
         // remove loading
@@ -73,22 +79,22 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(
-                  height: 50,
+                  height: 25,
                 ),
 
                 // Logo
                 const Icon(
                   Icons.lock,
-                  size: 100,
+                  size: 50,
                 ),
 
                 const SizedBox(
-                  height: 50,
+                  height: 25,
                 ),
 
                 // Title
                 Text(
-                  'Welcome to G.R.O.T',
+                  'Let\'s create an account!',
                   style: style,
                 ),
 
@@ -113,22 +119,14 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: true),
 
                 const SizedBox(
-                  height: 10,
+                  height: 25,
                 ),
 
-                // Forgot password
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Forgot password?",
-                        style: style.copyWith(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
+                // Confirm Password
+                MyInputField(
+                    controller: confirmPasswordController,
+                    hintText: "Confirm password",
+                    obscureText: true),
 
                 const SizedBox(
                   height: 25,
@@ -136,8 +134,8 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Sign in button
                 MyButton(
-                  onTap: signUserIn,
-                  text: "Sign In",
+                  onTap: signUserUp,
+                  text: "Sign Up",
                 ),
 
                 const SizedBox(
@@ -198,13 +196,13 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Not a member?"),
+                    const Text("Already have an account?"),
                     const SizedBox(
                       width: 4,
                     ),
                     GestureDetector(
                       onTap: widget.onTap,
-                      child: const Text("Register now",
+                      child: const Text("login now",
                           style: TextStyle(
                               color: Colors.blueAccent,
                               fontWeight: FontWeight.bold)),
